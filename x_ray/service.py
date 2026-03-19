@@ -8,14 +8,24 @@ import torch.nn.functional as F
 
 torch.backends.mkldnn.enabled = False
 
-model = xrv.models.DenseNet(weights="densenet121-res224-all")
-model.eval()
+model = None  # global
+
+
+def get_model():
+    global model
+    if model is None:
+        print("Loading model...")
+        model = xrv.models.DenseNet(weights="densenet121-res224-all")
+        model.eval()
+    return model
 
 
 def predict_xray(image_file):
     img = Image.open(image_file).convert("L")
     img = np.array(img)
     img = xrv.datasets.normalize(img, 255)
+
+    model = get_model()
 
     img = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).float()
     img = F.interpolate(img, size=(224, 224), mode="bilinear", align_corners=False)
