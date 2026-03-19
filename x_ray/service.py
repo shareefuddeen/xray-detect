@@ -1,10 +1,5 @@
 # detector/services.py
-
 import torch
-import torchxrayvision as xrv
-import numpy as np
-from PIL import Image
-import torch.nn.functional as F
 
 torch.backends.mkldnn.enabled = False
 
@@ -15,12 +10,19 @@ def get_model():
     global model
     if model is None:
         print("Loading model...")
+        import torchxrayvision as xrv
+
         model = xrv.models.DenseNet(weights="densenet121-res224-all")
         model.eval()
     return model
 
 
 def predict_xray(image_file):
+    import numpy as np
+    from PIL import Image
+    import torch.nn.functional as F
+    import torchxrayvision as xrv
+
     img = Image.open(image_file).convert("L")
     img = np.array(img)
     img = xrv.datasets.normalize(img, 255)
