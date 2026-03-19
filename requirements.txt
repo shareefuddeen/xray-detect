@@ -30,8 +30,8 @@ six==1.17.0
 sqlparse==0.5.5
 sympy==1.14.0
 tifffile==2026.3.3
-torch==2.10.0+cpu
-torchaudio==2.10.0+cpu
+torch==2.10.0
+torchaudio==2.10.0
 torchvision==0.25.0
 torchxrayvision==1.4.0
 tqdm==4.67.3
