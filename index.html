@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>X-Ray Disease Detector</title>
+</head>
+<body class="dark-mode">
+    {% load static %}
+<button class="btn-outline" id="toggle">Toggle theme</button>
+<div class="card">
+    <img id="preview" width="250">
+<h2>Upload Chest X-Ray</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div>
+<input type="file" class="file-input" name="xray" id="uploadImage">
+    </div>
+    <div>
+<button type="button" id="analyzeBtn"  class="btn-primary">Analyze</button>
+    </div>
+</form>
+<br><br>
+
+
+<div id="result">Result: {{result}}</div>
+</div>
+<p style="color: red;">
+This is AI-assisted and not a medical diagnosis.
+</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="script.js"></script>
+
+
+<style>
+
+@font-face {
+    font-family: 'agency'; 
+    src: url("{% static 'fonts/agency.otf' %}") format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+  --bg-color: #F8FAFC;
+  --text-color: #0F172A;
+  --card-bg: #FFFFFF;
+}
+
+.dark-mode {
+  --bg-color: #0F172A;
+  --text-color: #E2E8F0;
+  --card-bg: #1E293B;
+}
+    
+body{
+    margin: 0;
+    width: 100vw;
+    overflow-x: hidden;
+    height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    padding:10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 6px;
+
+}
+form{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+}
+
+h2{
+    font-size: 64px;
+    font-weight: bolder;
+    margin: 4px;
+    font-family: "agency", sans-serif;
+}
+
+.file-input {
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #0F172A;
+  background-color: #F8FAFC;
+  border: 2px dashed #CBD5F5;
+  padding: 10px;
+  border-radius: 10px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background-color: #0F172A;
+  color: #FFFFFF;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1E293B;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.file-input::file-selector-button {
+  background-color: #0F172A;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 16px;
+  margin-right: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.file-input::file-selector-button:hover {
+  background-color: #1E293B;
+}
+
+.file-input:hover {
+  border-color: #0F172A;
+}
+.btn-outline {
+  background: transparent;
+  color: #0F172A;
+  border: 2px solid #0F172A;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s ease;
+  position: absolute;
+  top:24px;
+  right: 12px;
+}
+
+.btn-outline:hover {
+  background-color: #0F172A;
+  color: #FFFFFF;
+}
+
+.dark-mode .btn-primary {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.dark-mode .btn-primary:hover {
+  background-color: #CBD5F5;
+}
+
+.dark-mode .btn-outline {
+  color: #E2E8F0;
+  border-color: #E2E8F0;
+}
+
+.dark-mode .btn-outline:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.dark-mode .file-input {
+  color: #E2E8F0;
+  background-color: #0F172A;
+  border: 2px dashed #334155;
+}
+
+.dark-mode .file-input::file-selector-button {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+.card {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.bar {
+    height: 10px;
+    background: green;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 800px) {
+    body{
+        padding: 1px;
+    }
+    .card {
+        padding: 15px;
+    }
+    #preview {
+        max-width: 90%;
+    }
+    h2 {
+        font-size: clamp(20px, 8vw, 40px);
+    }
+    .file-input, .btn-primary, .btn-outline {
+        max-width: 100%;
+    }
+}
+</style>
+
+<script>document.addEventListener("DOMContentLoaded",function(){
+
+         const uploadInput = document.getElementById('uploadImage');
+    const previewImg = document.getElementById('preview');
+
+    uploadInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+        }
+    });
+
+    function ToggleMode(){
+        document.body.classList.toggle("dark-mode")
+    }
+
+  function uploadXray() {
+    let resultsDiv = document.getElementById("result");
+    resultsDiv.innerHTML = "Analyzing...";
+
+    let file = document.getElementById("uploadImage").files[0];
+    if (!file) {
+        resultsDiv.innerHTML = "Please upload an X-ray image first.";
+        return;
+    }
+
+    let formData = new FormData();
+    formData.append("xray", file);
+
+    fetch("/xray/detect/", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        resultsDiv.innerHTML = "";
+
+        if (!data.predictions || data.predictions.length === 0) {
+            resultsDiv.innerHTML = "<p>No significant findings</p>";
+            return;
+        }
+
+        const item = data.predictions[0];
+        resultsDiv.innerHTML = `
+            <div>
+                <strong>${item.disease}</strong>
+                <div class="bar" style="width:${item.confidence * 100}%"></div>
+            </div>
+        `;
+    })
+    .catch(err => {
+        console.error(err);
+        resultsDiv.innerHTML = "Error analyzing image";
+    });
+}
+
+document.getElementById("analyzeBtn").addEventListener("click", uploadXray);
+document.getElementById("toggle").addEventListener("click", ToggleMode);
+
+})</script>
+
+</body>
+</html>
