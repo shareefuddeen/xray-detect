@@ -3,29 +3,33 @@ import torchxrayvision as xrv
 from PIL import Image
 import numpy as np
 
-# Load ResNet18 once globally
-model = xrv.models.ResNet(weights="resnet18-res224-all")
-model.eval()  # set model to evaluation mode
+# Set device to CPU
+device = torch.device("cpu")
+
+# Load model (DenseNet121, small input 224x224)
+model = xrv.models.DenseNet(weights="densenet121-res224-all").to(device)
+model.eval()
 
 
 def predict_xray(image_file):
-    """
-    Predict X-ray diseases from uploaded image.
-    Returns a list of predictions.
-    """
-    # Open and resize image
+    # Open image and convert to grayscale
     img = Image.open(image_file).convert("L")
-    img = img.resize((224, 224))  # ResNet18 expects 224x224
 
-    # Convert to numpy and normalize
+    # Resize to 224x224 to reduce memory usage
+    img = img.resize((224, 224))
     img = np.array(img, dtype=np.float32)
+
+    # Normalize using torchxrayvision utility
     img = xrv.datasets.normalize(img, 255)
-    img = np.expand_dims(img, 0)  # add batch dimension
-    img = np.expand_dims(img, 0)  # add channel dimension (1,1,224,224)
 
-    # Predict
+    # Convert to tensor and add batch + channel dimensions
+    img_tensor = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).to(device)
+
+    # Run inference
     with torch.no_grad():
-        tensor = torch.tensor(img, dtype=torch.float32)
-        output = model(tensor)
+        output = model(img_tensor)[0]
 
-    return output[0].tolist()
+    # Convert output to dict with disease labels
+    results = {disease: float(prob) for disease, prob in zip(model.pathologies, output)}
+
+    return results
