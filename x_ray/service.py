@@ -1,58 +1,31 @@
-# detector/services.py
 import torch
+import torchxrayvision as xrv
+from PIL import Image
+import numpy as np
 
-torch.backends.mkldnn.enabled = False
-
-model = None  # global
-
-
-def get_model():
-    global model
-    if model is None:
-        print("Loading model...")
-        import torchxrayvision as xrv
-
-        model = xrv.models.DenseNet(weights="densenet121-res224-all")
-        model.eval()
-    return model
+# Load ResNet18 once globally
+model = xrv.models.ResNet(weights="resnet18-res224-all")
+model.eval()  # set model to evaluation mode
 
 
 def predict_xray(image_file):
-    import numpy as np
-    from PIL import Image
-    import torch.nn.functional as F
-    import torchxrayvision as xrv
-
+    """
+    Predict X-ray diseases from uploaded image.
+    Returns a list of predictions.
+    """
+    # Open and resize image
     img = Image.open(image_file).convert("L")
-    img = img.resize((224, 224))  # smaller to save RAM
-    img = np.array(img)
+    img = img.resize((224, 224))  # ResNet18 expects 224x224
+
+    # Convert to numpy and normalize
+    img = np.array(img, dtype=np.float32)
     img = xrv.datasets.normalize(img, 255)
+    img = np.expand_dims(img, 0)  # add batch dimension
+    img = np.expand_dims(img, 0)  # add channel dimension (1,1,224,224)
 
-    model = get_model()
-
-    img = torch.from_numpy(img).unsqueeze(0).unsqueeze(0).float()
-    img = F.interpolate(img, size=(224, 224), mode="bilinear", align_corners=False)
-
+    # Predict
     with torch.no_grad():
-        output = model(img)[0]
+        tensor = torch.tensor(img, dtype=torch.float32)
+        output = model(tensor)
 
-    results = list(zip(xrv.datasets.default_pathologies, output))
-    results = sorted(results, key=lambda x: float(x[1]), reverse=True)
-
-    tb_score = 0
-    cardio_score = 0
-
-    for p, s in results:
-        s = float(s)
-        if p in ["Infiltration", "Consolidation"]:
-            tb_score = max(tb_score, s)
-        elif p == "Cardiomegaly":
-            cardio_score = max(cardio_score, s)
-
-    filtered = []
-    if tb_score > 0.6:
-        filtered.append({"disease": "Tuberculosis", "confidence": tb_score})
-    elif cardio_score > 0.5:
-        filtered.append({"disease": "Cardiomegaly", "confidence": cardio_score})
-
-    return filtered
+    return output[0].tolist()
