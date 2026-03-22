@@ -248,7 +248,7 @@ h2{
     let formData = new FormData();
     formData.append("xray", file);
 
-    fetch("/xray/detect/", {
+    fetch("/detect/", {
         method: "POST",
         body: formData
     })
