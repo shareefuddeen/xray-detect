@@ -2,222 +2,310 @@
 <html>
 <head>
     <title>X-Ray Disease Detector</title>
-</head>
-<body class="dark-mode">
-    {% load static %}
-<button class="btn-outline" id="toggle">Toggle theme</button>
-<div class="card">
-    <img id="preview" width="250">
-<h2>Upload Chest X-Ray</h2>
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div>
-<input type="file" class="file-input" name="xray" id="uploadImage">
-    </div>
-    <div>
-<button type="button" id="analyzeBtn"  class="btn-primary">Analyze</button>
-    </div>
-</form>
-<br><br>
-
-
-<div id="result">Result: {{result}}</div>
-</div>
-<p style="color: red;">
-This is AI-assisted and not a medical diagnosis.
-</p>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-<script src="script.js"></script>
-
-
-<style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
 
 @font-face {
-    font-family: 'agency'; 
-    src: url("{% static 'fonts/agency.otf' %}") format('opentype');
+    font-family: 'agency';
+    src: url("fonts/agency.otf") format('opentype');
     font-weight: normal;
     font-style: normal;
 }
 
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
 :root {
-  --bg-color: #F8FAFC;
-  --text-color: #0F172A;
-  --card-bg: #FFFFFF;
+    --bg-color: #F8FAFC;
+    --text-color: #0F172A;
+    --card-bg: #FFFFFF;
 }
 
 .dark-mode {
-  --bg-color: #0F172A;
-  --text-color: #E2E8F0;
-  --card-bg: #1E293B;
+    --bg-color: #0F172A;
+    --text-color: #E2E8F0;
+    --card-bg: #1E293B;
 }
-    
-body{
+
+body {
     margin: 0;
-    width: 100vw;
+    width: 100%;
+    min-height: 100vh;
     overflow-x: hidden;
-    height: 100vh;
     background-color: var(--bg-color);
     color: var(--text-color);
-    padding:10px;
+    padding: 60px 16px 24px;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     flex-direction: column;
-    gap: 6px;
-
+    gap: 12px;
+    transition: background-color 0.3s, color 0.3s;
 }
-form{
+
+/* Center the card wrapper */
+.page-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+form {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: 12px;
+    width: 100%;
 }
 
-h2{
-    font-size: 64px;
+h2 {
+    font-size: clamp(32px, 9vw, 64px);
     font-weight: bolder;
-    margin: 4px;
+    margin: 4px 0;
     font-family: "agency", sans-serif;
+    text-align: center;
+    line-height: 1.1;
+}
+
+#preview {
+    max-width: 100%;
+    width: 250px;
+    height: auto;
+    border-radius: 10px;
+    display: none;
 }
 
 .file-input {
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  color: #0F172A;
-  background-color: #F8FAFC;
-  border: 2px dashed #CBD5F5;
-  padding: 10px;
-  border-radius: 10px;
-  width: 100%;
-  cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    color: #0F172A;
+    background-color: #F8FAFC;
+    border: 2px dashed #CBD5F5;
+    padding: 16px 12px;
+    border-radius: 12px;
+    width: 100%;
+    cursor: pointer;
+    min-height: 56px;
 }
 
 .btn-primary {
-  background-color: #0F172A;
-  color: #FFFFFF;
-  padding: 10px 18px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
+    background-color: #0F172A;
+    color: #FFFFFF;
+    padding: 18px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    min-height: 60px;
+    letter-spacing: 0.3px;
 }
 
 .btn-primary:hover {
-  background-color: #1E293B;
-  transform: translateY(-1px);
+    background-color: #1E293B;
+    transform: translateY(-1px);
 }
 
 .btn-primary:active {
-  transform: scale(0.98);
+    transform: scale(0.98);
 }
 
 .file-input::file-selector-button {
-  background-color: #0F172A;
-  color: #FFFFFF;
-  border: none;
-  padding: 8px 16px;
-  margin-right: 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s ease;
+    background-color: #0F172A;
+    color: #FFFFFF;
+    border: none;
+    padding: 10px 18px;
+    margin-right: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    font-size: 16px;
 }
 
 .file-input::file-selector-button:hover {
-  background-color: #1E293B;
+    background-color: #1E293B;
 }
 
 .file-input:hover {
-  border-color: #0F172A;
+    border-color: #0F172A;
 }
+
 .btn-outline {
-  background: transparent;
-  color: #0F172A;
-  border: 2px solid #0F172A;
-  padding: 10px 18px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s ease;
-  position: absolute;
-  top:24px;
-  right: 12px;
+    background: transparent;
+    color: #0F172A;
+    border: 2px solid #0F172A;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    font-size: 16px;
+    z-index: 100;
+    white-space: nowrap;
+    min-height: 44px;
 }
 
 .btn-outline:hover {
-  background-color: #0F172A;
-  color: #FFFFFF;
+    background-color: #0F172A;
+    color: #FFFFFF;
 }
 
 .dark-mode .btn-primary {
-  background-color: #E2E8F0;
-  color: #0F172A;
+    background-color: #E2E8F0;
+    color: #0F172A;
 }
 
 .dark-mode .btn-primary:hover {
-  background-color: #CBD5F5;
+    background-color: #CBD5F5;
 }
 
 .dark-mode .btn-outline {
-  color: #E2E8F0;
-  border-color: #E2E8F0;
+    color: #E2E8F0;
+    border-color: #E2E8F0;
 }
 
 .dark-mode .btn-outline:hover {
-  background-color: #E2E8F0;
-  color: #0F172A;
+    background-color: #E2E8F0;
+    color: #0F172A;
 }
 
 .dark-mode .file-input {
-  color: #E2E8F0;
-  background-color: #0F172A;
-  border: 2px dashed #334155;
+    color: #E2E8F0;
+    background-color: #0F172A;
+    border: 2px dashed #334155;
 }
 
 .dark-mode .file-input::file-selector-button {
-  background-color: #E2E8F0;
-  color: #0F172A;
+    background-color: #E2E8F0;
+    color: #0F172A;
 }
+
 .card {
-  background: var(--card-bg);
-  padding: 30px;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    background: var(--card-bg);
+    padding: 28px 20px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
 }
+
 .bar {
-    height: 10px;
+    height: 12px;
     background: green;
     margin-bottom: 10px;
+    border-radius: 6px;
 }
 
-@media (max-width: 800px) {
-    body{
-        padding: 1px;
+#result {
+    width: 100%;
+    word-break: break-word;
+    text-align: center;
+    font-size: 18px;
+}
+
+.disclaimer {
+    color: red;
+    font-size: 15px;
+    text-align: center;
+    margin: 0;
+    padding: 0 8px;
+}
+
+/* Tablet and up — scale back down to comfortable desktop sizes */
+@media (min-width: 600px) {
+    body {
+        padding: 80px 24px 32px;
+        align-items: center;
     }
-    .card {
-        padding: 25px;
+
+    .btn-outline {
+        font-size: 18px;
+        padding: 10px 18px;
     }
-    #preview {
-        max-width: 90%;
+
+    .btn-primary {
+        font-size: 16px;
+        padding: 14px 24px;
+        min-height: 50px;
+    }
+
+    .file-input {
+        font-size: 15px;
+        padding: 12px;
+        min-height: 48px;
+    }
+
+    .file-input::file-selector-button {
+        font-size: 14px;
+    }
+
+    #result {
+        font-size: 15px;
+    }
+
+    .disclaimer {
+        font-size: 13px;
     }
 }
-</style>
 
-<script>document.addEventListener("DOMContentLoaded",function(){
+/* Desktop */
+@media (min-width: 900px) {
+    body {
+        padding: 100px 40px 40px;
+    }
+}
 
-         const uploadInput = document.getElementById('uploadImage');
+    </style>
+</head>
+<body class="dark-mode">
+
+<button class="btn-outline" id="toggle">Toggle theme</button>
+
+<div class="page-wrapper">
+    <div class="card">
+        <img id="preview" width="250" alt="X-ray preview">
+        <h2>Upload Chest X-Ray</h2>
+        <form method="POST" enctype="multipart/form-data">
+            <div style="width:100%">
+                <input type="file" class="file-input" name="xray" id="uploadImage" accept="image/*">
+            </div>
+            <div style="width:100%; display:flex; justify-content:center;">
+                <button type="button" id="analyzeBtn" class="btn-primary">Analyze</button>
+            </div>
+        </form>
+        <br>
+        <div id="result">Result: </div>
+    </div>
+
+    <p class="disclaimer">This is AI-assisted and not a medical diagnosis.</p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const uploadInput = document.getElementById('uploadImage');
     const previewImg = document.getElementById('preview');
 
-    uploadInput.addEventListener('change', function() {
+    uploadInput.addEventListener('change', function () {
         const file = this.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 previewImg.src = e.target.result;
                 previewImg.style.display = 'block';
-            }
+            };
             reader.readAsDataURL(file);
         } else {
             previewImg.src = '';
@@ -225,54 +313,54 @@ h2{
         }
     });
 
-    function ToggleMode(){
-        document.body.classList.toggle("dark-mode")
+    function ToggleMode() {
+        document.body.classList.toggle("dark-mode");
     }
 
-  function uploadXray() {
-    let resultsDiv = document.getElementById("result");
-    resultsDiv.innerHTML = "Analyzing...";
+    function uploadXray() {
+        let resultsDiv = document.getElementById("result");
+        resultsDiv.innerHTML = "Analyzing...";
 
-    let file = document.getElementById("uploadImage").files[0];
-    if (!file) {
-        resultsDiv.innerHTML = "Please upload an X-ray image first.";
-        return;
-    }
-
-    let formData = new FormData();
-    formData.append("xray", file);
-
-    fetch("/detect/", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        resultsDiv.innerHTML = "";
-
-        if (!data.predictions || data.predictions.length === 0) {
-            resultsDiv.innerHTML = "<p>No significant findings</p>";
+        let file = document.getElementById("uploadImage").files[0];
+        if (!file) {
+            resultsDiv.innerHTML = "Please upload an X-ray image first.";
             return;
         }
 
-        const item = data.predictions[0];
-        resultsDiv.innerHTML = `
-            <div>
-                <strong>${item.disease}</strong>
-                <div class="bar" style="width:${item.confidence * 100}%"></div>
-            </div>
-        `;
-    })
-    .catch(err => {
-        console.error(err);
-        resultsDiv.innerHTML = "Error analyzing image";
-    });
-}
+        let formData = new FormData();
+        formData.append("xray", file);
 
-document.getElementById("analyzeBtn").addEventListener("click", uploadXray);
-document.getElementById("toggle").addEventListener("click", ToggleMode);
+        fetch("/detect/", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            resultsDiv.innerHTML = "";
 
-})</script>
+            if (!data.predictions || data.predictions.length === 0) {
+                resultsDiv.innerHTML = "<p>No significant findings</p>";
+                return;
+            }
+
+            const item = data.predictions[0];
+            resultsDiv.innerHTML = `
+                <div>
+                    <strong>${item.disease}</strong>
+                    <div class="bar" style="width:${item.confidence * 100}%"></div>
+                </div>
+            `;
+        })
+        .catch(err => {
+            console.error(err);
+            resultsDiv.innerHTML = "Error analyzing image";
+        });
+    }
+
+    document.getElementById("analyzeBtn").addEventListener("click", uploadXray);
+    document.getElementById("toggle").addEventListener("click", ToggleMode);
+});
+</script>
 
 </body>
 </html>

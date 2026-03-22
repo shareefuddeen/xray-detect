@@ -1,4 +1,6 @@
 import torch
+
+torch.set_num_threads(1)
 import torchxrayvision as xrv
 from PIL import Image
 import numpy as np
