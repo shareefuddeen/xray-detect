@@ -24,6 +24,7 @@ def predict_xray(image_file):
     import torchxrayvision as xrv
 
     img = Image.open(image_file).convert("L")
+    img = img.resize((224, 224))  # smaller to save RAM
     img = np.array(img)
     img = xrv.datasets.normalize(img, 255)
 
