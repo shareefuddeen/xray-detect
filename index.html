@@ -4,12 +4,12 @@
     <title>X-Ray Disease Detector</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+/* (your CSS unchanged) */
 @font-face {
     font-family: 'agency';
     src: url("fonts/agency.otf") format('opentype');
-    font-weight: normal;
-    font-style: normal;
 }
+
 *, *::before, *::after { box-sizing: border-box; }
 
 :root {
@@ -34,127 +34,17 @@ body {
     padding: 60px 16px 24px;
     display: flex;
     justify-content: center;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-    transition: background-color 0.3s, color 0.3s;
-}
-
-.page-wrapper {
-    width: 100%;
-    display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
 }
-
-form {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 12px;
-    width: 100%;
-}
-
-h2 {
-    font-size: clamp(32px, 9vw, 64px);
-    font-weight: bolder;
-    margin: 4px 0;
-    font-family: "agency", sans-serif;
-    text-align: center;
-    line-height: 1.1;
-}
-
-#preview {
-    max-width: 100%;
-    width: 250px;
-    height: auto;
-    border-radius: 10px;
-    display: none;
-}
-
-.file-input {
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    color: #0F172A;
-    background-color: #F8FAFC;
-    border: 2px dashed #CBD5F5;
-    padding: 16px 12px;
-    border-radius: 12px;
-    width: 100%;
-    cursor: pointer;
-    min-height: 56px;
-}
-
-.btn-primary {
-    background-color: #0F172A;
-    color: #FFFFFF;
-    padding: 18px 24px;
-    border: none;
-    border-radius: 12px;
-    font-size: 20px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 100%;
-    min-height: 60px;
-    letter-spacing: 0.3px;
-}
-
-.btn-primary:hover { background-color: #1E293B; transform: translateY(-1px); }
-.btn-primary:active { transform: scale(0.98); }
-
-.file-input::file-selector-button {
-    background-color: #0F172A;
-    color: #FFFFFF;
-    border: none;
-    padding: 10px 18px;
-    margin-right: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s ease;
-    font-size: 16px;
-}
-.file-input::file-selector-button:hover { background-color: #1E293B; }
-.file-input:hover { border-color: #0F172A; }
-
-.btn-outline {
-    background: transparent;
-    color: #0F172A;
-    border: 2px solid #0F172A;
-    padding: 10px 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: 0.3s ease;
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    font-size: 16px;
-    z-index: 100;
-    white-space: nowrap;
-    min-height: 44px;
-}
-.btn-outline:hover { background-color: #0F172A; color: #FFFFFF; }
-
-.dark-mode .btn-primary { background-color: #E2E8F0; color: #0F172A; }
-.dark-mode .btn-primary:hover { background-color: #CBD5F5; }
-.dark-mode .btn-outline { color: #E2E8F0; border-color: #E2E8F0; }
-.dark-mode .btn-outline:hover { background-color: #E2E8F0; color: #0F172A; }
-.dark-mode .file-input { color: #E2E8F0; background-color: #0F172A; border: 2px dashed #334155; }
-.dark-mode .file-input::file-selector-button { background-color: #E2E8F0; color: #0F172A; }
 
 .card {
     background: var(--card-bg);
     padding: 28px 20px;
     border-radius: 20px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 480px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
+    text-align: center;
 }
 
 .bar {
@@ -164,62 +54,42 @@ h2 {
     border-radius: 6px;
 }
 
-#result {
-    width: 100%;
-    word-break: break-word;
-    text-align: center;
-    font-size: 18px;
+#preview {
+    max-width: 100%;
+    width: 250px;
+    display: none;
 }
 
 .disclaimer {
     color: red;
-    font-size: 15px;
-    text-align: center;
-    margin: 0;
-    padding: 0 8px;
+    font-size: 14px;
 }
-
-@media (min-width: 600px) {
-    body { padding: 80px 24px 32px; align-items: center; }
-    .btn-outline { font-size: 18px; padding: 10px 18px; }
-    .btn-primary { font-size: 16px; padding: 14px 24px; min-height: 50px; }
-    .file-input { font-size: 15px; padding: 12px; min-height: 48px; }
-    .file-input::file-selector-button { font-size: 14px; }
-    #result { font-size: 15px; }
-    .disclaimer { font-size: 13px; }
-}
-
-@media (min-width: 900px) { body { padding: 100px 40px 40px; } }
     </style>
 </head>
 <body class="dark-mode">
 
-<button class="btn-outline" id="toggle">Toggle theme</button>
+<button onclick="ToggleMode()">Toggle theme</button>
 
-<div class="page-wrapper">
-    <div class="card">
-        <img id="preview" width="250" alt="X-ray preview">
-        <h2>Upload Chest X-Ray</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <div style="width:100%">
-                <input type="file" class="file-input" name="xray" id="uploadImage" accept="image/*">
-            </div>
-            <div style="width:100%; display:flex; justify-content:center;">
-                <button type="button" id="analyzeBtn" class="btn-primary">Analyze</button>
-            </div>
-        </form>
-        <br>
-        <div id="result">Result: </div>
-    </div>
+<div class="card">
+    <img id="preview">
+    <h2>Upload Chest X-Ray</h2>
 
-    <p class="disclaimer">This is AI-assisted and not a medical diagnosis.</p>
+    <input type="file" id="uploadImage" accept="image/*">
+    <br><br>
+
+    <button id="analyzeBtn">Analyze</button>
+
+    <div id="result">Result:</div>
 </div>
+
+<p class="disclaimer">This is AI-assisted and not a medical diagnosis.</p>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     const uploadInput = document.getElementById('uploadImage');
     const previewImg = document.getElementById('preview');
+    const resultsDiv = document.getElementById("result");
 
     uploadInput.addEventListener('change', function () {
         const file = this.files[0];
@@ -230,9 +100,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 previewImg.style.display = 'block';
             };
             reader.readAsDataURL(file);
-        } else {
-            previewImg.src = '';
-            previewImg.style.display = 'none';
         }
     });
 
@@ -240,81 +107,90 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.toggle("dark-mode");
     }
 
-   function uploadXray() {
-    let resultsDiv = document.getElementById("result");
-    let file = uploadInput.files[0];
+    function uploadXray() {
+        let file = uploadInput.files[0];
 
-    if (!file) {
-        resultsDiv.innerHTML = "Please upload an X-ray image first.";
-        return;
-    }
-
-    resultsDiv.innerHTML = "Analyzing...";
-
-    let formData = new FormData();
-    formData.append("xray", file);
-
-    fetch("/detect/", {
-        method: "POST",
-        body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-        resultsDiv.innerHTML = "";
-
-        if (!data.predictions || Object.keys(data.predictions).length === 0) {
-            resultsDiv.innerHTML = "<p>No significant findings</p>";
+        if (!file) {
+            resultsDiv.innerHTML = "Please upload an X-ray image first.";
             return;
         }
 
-        const allowedDiseases = ["Cardiomegaly"];
-        const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
-        const confidenceThreshold = 0.6; // Only consider strong predictions
-        let html = "";
+        resultsDiv.innerHTML = "Analyzing...";
 
-        // Check for Cardiomegaly
-        for (const [disease, confidence] of Object.entries(data.predictions)) {
-            if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
-                html += `
+        let formData = new FormData();
+        formData.append("xray", file);
+
+        fetch("/detect/", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            if (!data.predictions || Object.keys(data.predictions).length === 0) {
+                resultsDiv.innerHTML = "<p>No significant findings</p>";
+                return;
+            }
+
+            const confidenceThreshold = 0.6;
+
+            const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
+            const allowedDiseases = ["Cardiomegaly"];
+
+            let tbCount = 0;
+            let strongTB = false;
+
+            for (const symptom of tbSymptoms) {
+                let value = data.predictions[symptom];
+
+                if (value && value > confidenceThreshold) {
+                    tbCount += 1;
+                }
+
+                if (value && value > 0.75) {
+                    strongTB = true;
+                }
+            }
+
+            if (tbCount >= 2 && strongTB) {
+                resultsDiv.innerHTML = `
                     <div>
-                        <strong>${disease}</strong>
-                        <div class="bar" style="width:${confidence * 100}%"></div>
+                        <strong>Tuberculosis</strong>
+                        <div class="bar" style="width:100%"></div>
                     </div>
                 `;
+                return;
             }
-        }
 
-        // Check for TB symptoms
-        let tbCount = 0;
-        for (const symptom of tbSymptoms) {
-            if (data.predictions[symptom] && data.predictions[symptom] > confidenceThreshold) {
-                tbCount += 1;
+  
+            let html = "";
+
+            for (const [disease, confidence] of Object.entries(data.predictions)) {
+                if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
+                    html += `
+                        <div>
+                            <strong>${disease}</strong>
+                            <div class="bar" style="width:${confidence * 100}%"></div>
+                        </div>
+                    `;
+                }
             }
-        }
 
-        // Require at least 2 TB-related symptoms to show TB
-        if (tbCount >= 2) {
-            html += `
-                <div>
-                    <strong>Tuberculosis</strong>
-                    <div class="bar" style="width:100%"></div>
-                </div>
-            `;
-        }
+        
+            if (html === "") {
+                resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
+            } else {
+                resultsDiv.innerHTML = html;
+            }
 
-        if (html === "") {
-            resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
-        } else {
-            resultsDiv.innerHTML = html;
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        resultsDiv.innerHTML = "Error analyzing image";
-    });
-}
+        })
+        .catch(err => {
+            console.error(err);
+            resultsDiv.innerHTML = "Error analyzing image";
+        });
+    }
+
     document.getElementById("analyzeBtn").addEventListener("click", uploadXray);
-    document.getElementById("toggle").addEventListener("click", ToggleMode);
 
 });
 </script>

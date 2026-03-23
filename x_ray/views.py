@@ -21,16 +21,12 @@ def detect_xray(request):
         return JsonResponse({"error": "No image uploaded"}, status=400)
 
     try:
-        # Run prediction
         results = predict_xray(image)
 
-        # Save to database
         scan = XrayScan.objects.create(image=image, result=results)
 
         return JsonResponse({"success": True, "predictions": results, "id": scan.id})
 
     except Exception as e:
-        # Log full traceback to console / Render logs
         traceback.print_exc()
-        # Return error message to frontend
         return JsonResponse({"error": f"Error analyzing image: {str(e)}"}, status=500)
