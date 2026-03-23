@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", function () {
         document.body.classList.toggle("dark-mode");
     }
 
-    function uploadXray() {
+   function uploadXray() {
     let resultsDiv = document.getElementById("result");
     let file = uploadInput.files[0];
 
@@ -268,12 +268,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         const allowedDiseases = ["Cardiomegaly"];
-        const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"]; // example TB indicators
+        const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
+        const confidenceThreshold = 0.3; // Only consider strong predictions
         let html = "";
 
         // Check for Cardiomegaly
         for (const [disease, confidence] of Object.entries(data.predictions)) {
-            if (allowedDiseases.includes(disease) && confidence > 0.1) {
+            if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
                 html += `
                     <div>
                         <strong>${disease}</strong>
@@ -284,15 +285,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // Check for TB symptoms
-        let tbDetected = false;
+        let tbCount = 0;
         for (const symptom of tbSymptoms) {
-            if (data.predictions[symptom] && data.predictions[symptom] > 0.1) {
-                tbDetected = true;
-                break;
+            if (data.predictions[symptom] && data.predictions[symptom] > confidenceThreshold) {
+                tbCount += 1;
             }
         }
 
-        if (tbDetected) {
+        // Require at least 2 TB-related symptoms to show TB
+        if (tbCount >= 2) {
             html += `
                 <div>
                     <strong>Tuberculosis</strong>
