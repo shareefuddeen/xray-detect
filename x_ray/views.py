@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .service import predict_xray
 from .models import XrayScan
+import traceback
 
 
 def upload_xray(request):
@@ -12,16 +13,24 @@ def upload_xray(request):
 
 @csrf_exempt
 def detect_xray(request):
-    if request.method == "POST":
-        image = request.FILES.get("xray")
+    if request.method != "POST":
+        return JsonResponse({"error": "Only POST allowed"}, status=405)
 
-        if not image:
-            return JsonResponse({"error": "No image uploaded"}, status=400)
+    image = request.FILES.get("xray")
+    if not image:
+        return JsonResponse({"error": "No image uploaded"}, status=400)
 
+    try:
+        # Run prediction
         results = predict_xray(image)
 
+        # Save to database
         scan = XrayScan.objects.create(image=image, result=results)
 
         return JsonResponse({"success": True, "predictions": results, "id": scan.id})
 
-    return JsonResponse({"error": "Only POST allowed"}, status=405)
+    except Exception as e:
+        # Log full traceback to console / Render logs
+        traceback.print_exc()
+        # Return error message to frontend
+        return JsonResponse({"error": f"Error analyzing image: {str(e)}"}, status=500)
