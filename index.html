@@ -271,32 +271,31 @@ document.addEventListener("DOMContentLoaded", function () {
         const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
         const confidenceThreshold = 0.4;
 
-        // =========================
-        // STEP 1: CHECK TB FIRST
-        // =========================
-        let tbCount = 0;
+let tbCount = 0;
+let strongTB = false;
 
-        for (const symptom of tbSymptoms) {
-            const value = data.predictions[symptom];
-            if (value && value > confidenceThreshold) {
-                tbCount += 1;
-            }
-        }
+for (const symptom of tbSymptoms) {
+    const value = data.predictions[symptom];
 
-        // If TB detected → show ONLY TB and STOP
-        if (tbCount >= 2) {
-            resultsDiv.innerHTML = `
-                <div>
-                    <strong>Tuberculosis</strong>
-                    <div class="bar" style="width:100%"></div>
-                </div>
-            `;
-            return;
-        }
+    if (value && value > 0.6) {
+        tbCount += 1;
+    }
 
-        // =========================
-        // STEP 2: CHECK CARDIOMEGALY
-        // =========================
+    if (value && value > 0.75) {
+        strongTB = true;
+    }
+}
+
+if (tbCount >= 2 && strongTB) {
+    resultsDiv.innerHTML = `
+        <div>
+            <strong>Tuberculosis</strong>
+            <div class="bar" style="width:100%"></div>
+        </div>
+    `;
+    return;
+}
+
         let html = "";
 
         for (const [disease, confidence] of Object.entries(data.predictions)) {
@@ -310,10 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        // =========================
-        // FINAL OUTPUT
-        // =========================
-        if (html === "") {
+           if (html === "") {
             resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
         } else {
             resultsDiv.innerHTML = html;

@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .service import predict_xray
 from .models import XrayScan
 import traceback
+from django.contrib.auth.models import User
 
 
 def upload_xray(request):
@@ -30,3 +31,15 @@ def detect_xray(request):
     except Exception as e:
         traceback.print_exc()
         return JsonResponse({"error": f"Error analyzing image: {str(e)}"}, status=500)
+
+
+def create_admin():
+    if not User.objects.filter(username="sharif").exists():
+        User.objects.create_superuser(
+            username="sharif", email="awalsharifpz18@gmail.com", password="admin123"
+        )
+
+
+def init_admin(request):
+    create_admin()
+    return JsonResponse({"status": "admin created"})
