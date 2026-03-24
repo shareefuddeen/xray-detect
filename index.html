@@ -271,26 +271,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
         const confidenceThreshold = 0.4;
 
+
 let tbCount = 0;
-let strongTB = false;
+let maxTB = 0;
 
 for (const symptom of tbSymptoms) {
     const value = data.predictions[symptom];
 
-    if (value && value > 0.4) {
-        tbCount += 1;
-    }
+    if (value) {
+        if (value > 0.5) {
+            tbCount += 1;
+        }
 
-    if (value && value > 0.75) {
-        strongTB = true;
+        if (value > maxTB) {
+            maxTB = value;
+        }
     }
 }
 
-if (tbCount >= 2 && strongTB) {
+if (tbCount >= 2 && maxTB > 0.65) {
     resultsDiv.innerHTML = `
         <div>
             <strong>Tuberculosis</strong>
-            <div class="bar" style="width:100%"></div>
+            <div class="bar" style="width:${maxTB * 100}%"></div>
         </div>
     `;
     return;
