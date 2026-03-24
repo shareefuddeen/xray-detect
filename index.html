@@ -278,12 +278,12 @@ document.addEventListener("DOMContentLoaded", function () {
     tbSymptoms.forEach(symptom => {
         const value = data.predictions[symptom] || 0;
         tbScore += value;
-        if (value >= 0.6) strongSignals++;
+        if (value >= 0.55) strongSignals++;
     });
 
     const tbConfidence = tbScore / tbSymptoms.length;
 
-    const isTB = tbConfidence > 0.5 && strongSignals >= 2;
+    const isTB = tbConfidence > 0.4 && strongSignals >= 1;
 
     // ---- 2. Cardiomegaly detection ----
     const cardioConfidence = data.predictions["Cardiomegaly"] || 0;
