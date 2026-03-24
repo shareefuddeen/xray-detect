@@ -277,7 +277,7 @@ let strongTB = false;
 for (const symptom of tbSymptoms) {
     const value = data.predictions[symptom];
 
-    if (value && value > 0.6) {
+    if (value && value > 0.4) {
         tbCount += 1;
     }
 
