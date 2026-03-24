@@ -260,59 +260,58 @@ document.addEventListener("DOMContentLoaded", function () {
         })
         .then(res => res.json())
         .then(data => {
-            resultsDiv.innerHTML = "";
+    resultsDiv.innerHTML = "";
 
-            if (!data.predictions || Object.keys(data.predictions).length === 0) {
-                resultsDiv.innerHTML = "<p>No significant findings</p>";
-                return;
-            }
+    if (!data.predictions) {
+        resultsDiv.innerHTML = "<p>No results</p>";
+        return;
+    }
 
-            const allowedDiseases = ["Cardiomegaly"];
-            const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
-            const confidenceThreshold = 0.4;
-            let html = "";
+    const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
 
-            // ---- TB logic ----
-            let tbCount = 0;
-            let maxTB = 0;
+    let html = "";
 
-            for (const symptom of tbSymptoms) {
-                const value = data.predictions[symptom];
-                if (value) {
-                    if (value > 0.45) tbCount += 1;
-                    if (value > maxTB) maxTB = value;
-                }
-            }
+    // ---- 1. TB detection (make it STRICT) ----
+    let tbScore = 0;
+    let strongSignals = 0;
 
-            if (tbCount >= 2 && maxTB > 0.55) {
-                // Show only TB if detected
-                html += `
-                    <div>
-                        <strong>Tuberculosis</strong>
-                        <div class="bar" style="width:${maxTB * 100}%"></div>
-                    </div>
-                `;
-            } else {
-                // Show other diseases if TB not detected
-                for (const [disease, confidence] of Object.entries(data.predictions)) {
-                    if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
-                        html += `
-                            <div>
-                                <strong>${disease}</strong>
-                                <div class="bar" style="width:${confidence * 100}%"></div>
-                            </div>
-                        `;
-                    }
-                }
-            }
+    tbSymptoms.forEach(symptom => {
+        const value = data.predictions[symptom] || 0;
+        tbScore += value;
+        if (value > 0.6) strongSignals++;
+    });
 
-            if (html === "") {
-                resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
-            } else {
-                resultsDiv.innerHTML = html;
-            }
+    const tbConfidence = tbScore / tbSymptoms.length;
 
-        })
+    const isTB = tbConfidence > 0.5 && strongSignals >= 2;
+
+    // ---- 2. Cardiomegaly detection ----
+    const cardioConfidence = data.predictions["Cardiomegaly"] || 0;
+    const isCardio = cardioConfidence > 0.6;
+
+    // ---- 3. Final decision ----
+    if (isTB) {
+        html = `
+            <div>
+                <strong>Tuberculosis</strong>
+                <div class="bar" style="width:${tbConfidence * 100}%"></div>
+            </div>
+        `;
+    } 
+    else if (isCardio) {
+        html = `
+            <div>
+                <strong>Cardiomegaly</strong>
+                <div class="bar" style="width:${cardioConfidence * 100}%"></div>
+            </div>
+        `;
+    } 
+    else {
+        html = "<p>No significant findings</p>";
+    }
+
+    resultsDiv.innerHTML = html;
+})
         .catch(err => {
             console.error(err);
             resultsDiv.innerHTML = "Error analyzing image";
