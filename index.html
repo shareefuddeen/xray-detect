@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbSymptoms.forEach(symptom => {
         const value = data.predictions[symptom] || 0;
         tbScore += value;
-        if (value > 0.6) strongSignals++;
+        if (value >= 0.5) strongSignals++;
     });
 
     const tbConfidence = tbScore / tbSymptoms.length;
@@ -287,7 +287,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // ---- 2. Cardiomegaly detection ----
     const cardioConfidence = data.predictions["Cardiomegaly"] || 0;
-    const isCardio = cardioConfidence > 0.6;
+    const isCardio = cardioConfidence >= 0.5;
 
     // ---- 3. Final decision ----
     if (isTB) {
