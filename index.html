@@ -260,64 +260,55 @@ document.addEventListener("DOMContentLoaded", function () {
     })
     .then(res => res.json())
     .then(data => {
-        resultsDiv.innerHTML = "";
+    resultsDiv.innerHTML = "";
 
-        if (!data.predictions || Object.keys(data.predictions).length === 0) {
-            resultsDiv.innerHTML = "<p>No significant findings</p>";
-            return;
-        }
-
-        const allowedDiseases = ["Cardiomegaly"];
-        const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
-        const confidenceThreshold = 0.4;
-
-let tbValues = [];
-
-for (const symptom of tbSymptoms) {
-    const value = data.predictions[symptom];
-    if (value) {
-        tbValues.push(value);
+    if (!data.predictions || Object.keys(data.predictions).length === 0) {
+        resultsDiv.innerHTML = "<p>No significant findings</p>";
+        return;
     }
-}
 
-tbValues.sort((a, b) => b - a);
+    const allowedDiseases = ["Cardiomegaly"];
+    const tbSymptoms = ["Consolidation", "Infiltration", "Effusion", "Nodule", "Mass"];
+    const confidenceThreshold = 0.4;
+    let html = "";
 
-const top1 = tbValues[0] || 0;
-const top2 = tbValues[1] || 0;
-const top3 = tbValues[2] || 0;
-
-if (
-    top1 > 0.75 &&   
-    top2 > 0.65 &&   
-    top3 > 0.55      
-) {
-    resultsDiv.innerHTML = `
-        <div>
-            <strong>Tuberculosis</strong>
-            <div class="bar" style="width:${top1 * 100}%"></div>
-        </div>
-    `;
-    return;
-}
-        let html = "";
-
-        for (const [disease, confidence] of Object.entries(data.predictions)) {
-            if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
-                html += `
-                    <div>
-                        <strong>${disease}</strong>
-                        <div class="bar" style="width:${confidence * 100}%"></div>
-                    </div>
-                `;
-            }
+    for (const [disease, confidence] of Object.entries(data.predictions)) {
+        if (allowedDiseases.includes(disease) && confidence > confidenceThreshold) {
+            html += `
+                <div>
+                    <strong>${disease}</strong>
+                    <div class="bar" style="width:${confidence * 100}%"></div>
+                </div>
+            `;
         }
+    }
 
-           if (html === "") {
-            resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
-        } else {
-            resultsDiv.innerHTML = html;
+    let tbCount = 0;
+    let maxTB = 0;
+
+    for (const symptom of tbSymptoms) {
+        const value = data.predictions[symptom];
+        if (value) {
+            if (value > 0.45) tbCount += 1;
+            if (value > maxTB) maxTB = value;
         }
-    })
+    }
+
+    if (tbCount >= 2 && maxTB > 0.55) {  
+        html += `
+            <div>
+                <strong>Tuberculosis</strong>
+                <div class="bar" style="width:${maxTB * 100}%"></div>
+            </div>
+        `;
+    }
+
+    if (html === "") {
+        resultsDiv.innerHTML = "<p>No significant findings for Cardiomegaly or Tuberculosis</p>";
+    } else {
+        resultsDiv.innerHTML = html;
+    }
+})
     .catch(err => {
         console.error(err);
         resultsDiv.innerHTML = "Error analyzing image";
