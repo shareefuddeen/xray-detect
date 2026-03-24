@@ -278,7 +278,7 @@ document.addEventListener("DOMContentLoaded", function () {
     tbSymptoms.forEach(symptom => {
         const value = data.predictions[symptom] || 0;
         tbScore += value;
-        if (value >= 0.5) strongSignals++;
+        if (value >= 0.6) strongSignals++;
     });
 
     const tbConfidence = tbScore / tbSymptoms.length;
