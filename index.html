@@ -272,43 +272,44 @@ document.addEventListener("DOMContentLoaded", function () {
     let html = "";
 
     // ---- 1. TB detection (make it STRICT) ----
-    let tbScore = 0;
-    let strongSignals = 0;
+   let tbScore = 0;
+let strongSignals = 0;
 
-    tbSymptoms.forEach(symptom => {
-        const value = data.predictions[symptom] || 0;
-        tbScore += value;
-        if (value >= 0.55) strongSignals++;
-    });
+tbSymptoms.forEach(symptom => {
+    const value = data.predictions[symptom] || 0;
+    tbScore += value;
+    if (value >= 0.6) strongSignals++;   // stricter
+});
 
-    const tbConfidence = tbScore / tbSymptoms.length;
+const tbConfidence = tbScore / tbSymptoms.length;
+const isTB = tbConfidence > 0.45 && strongSignals >= 2;
 
-    const isTB = tbConfidence > 0.4 && strongSignals >= 1;
 
-    // ---- 2. Cardiomegaly detection ----
-    const cardioConfidence = data.predictions["Cardiomegaly"] || 0;
-    const isCardio = cardioConfidence >= 0.5;
+// ---- 2. Cardiomegaly detection ----
+const cardioConfidence = data.predictions["Cardiomegaly"] || 0;
+const isCardio = cardioConfidence >= 0.5;
 
-    // ---- 3. Final decision ----
-    if (isTB) {
-        html = `
-            <div>
-                <strong>Tuberculosis</strong>
-                <div class="bar" style="width:${tbConfidence * 100}%"></div>
-            </div>
-        `;
-    } 
-    else if (isCardio) {
-        html = `
-            <div>
-                <strong>Cardiomegaly</strong>
-                <div class="bar" style="width:${cardioConfidence * 100}%"></div>
-            </div>
-        `;
-    } 
-    else {
-        html = "<p>No significant findings</p>";
-    }
+
+// ---- 3. FINAL DECISION (THIS IS THE FIX) ----
+if (isCardio) {
+    html = `
+        <div>
+            <strong>Cardiomegaly</strong>
+            <div class="bar" style="width:${cardioConfidence * 100}%"></div>
+        </div>
+    `;
+} 
+else if (isTB) {
+    html = `
+        <div>
+            <strong>Tuberculosis</strong>
+            <div class="bar" style="width:${tbConfidence * 100}%"></div>
+        </div>
+    `;
+} 
+else {
+    html = "<p>No significant findings</p>";
+}
 
     resultsDiv.innerHTML = html;
 })
